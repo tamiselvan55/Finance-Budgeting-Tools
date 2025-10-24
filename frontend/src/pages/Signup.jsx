@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Signup = ({ login }) => {
   const [username, setUsername] = useState("");
@@ -8,50 +8,46 @@ const Signup = ({ login }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (username && password) {
-      login(username); // After signup, treat as logged in
-      navigate("/dashboard"); // navigate to dashboard
-    } else {
-      alert("Please enter username and password");
+
+    // Get existing users from localStorage or start empty
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+
+    // Check if username already exists
+    if (users.find((u) => u.username === username)) {
+      alert("Username already taken");
+      return;
     }
+
+    // Add new user
+    users.push({ username, password });
+    localStorage.setItem("users", JSON.stringify(users));
+
+    // Log in immediately
+    login(username);
+    navigate("/dashboard");
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-purple-900 to-pink-700 p-6 text-white">
-      <h2 className="text-3xl font-bold mb-6">Sign Up</h2>
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl w-full max-w-sm space-y-4 shadow-xl"
-      >
+    <div style={{ textAlign: "center", marginTop: "100px" }}>
+      <h2>Signup</h2>
+      <form onSubmit={handleSubmit}>
         <input
-          type="text"
           placeholder="Username"
-          className="w-full p-3 rounded-lg text-gray-900"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
         />
+        <br /><br />
         <input
           type="password"
           placeholder="Password"
-          className="w-full p-3 rounded-lg text-gray-900"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button
-          type="submit"
-          className="w-full bg-purple-600 hover:bg-purple-500 py-3 rounded-lg font-medium"
-        >
-          Sign Up
-        </button>
+        <br /><br />
+        <button type="submit">Signup</button>
       </form>
-      <p className="mt-4 text-purple-200 text-sm">
-        Already have an account?{" "}
-        <Link to="/login" className="text-indigo-400 underline">
-          Login
-        </Link>
-      </p>
     </div>
   );
 };
