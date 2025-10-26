@@ -1,105 +1,108 @@
 import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import API from "../utils/api";
-import { useNavigate } from "react-router-dom";
 import NavDashboardButton from "../components/NavDashboardButton";
 
 export default function AddTransaction() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const type = new URLSearchParams(location.search).get("type") || "income";
+
   const [form, setForm] = useState({
-    type: "expense",
     amount: "",
     category: "",
     description: "",
     date: "",
+    type: type,
   });
   const [msg, setMsg] = useState("");
-  const navigate = useNavigate();
 
-  const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-  const submit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const newTx = { ...form, amount: Number(form.amount), date: form.date || new Date() };
+
     try {
-      const payload = { ...form, amount: parseFloat(form.amount), date: form.date || new Date() };
-      await API.post("/transactions", payload);
-      setMsg("✅ Transaction saved successfully!");
-      setTimeout(() => navigate("/transactions"), 900);
+      // --- Try sending to backend ---
+      const res = await API.post("/transactions", newTx);
+      const savedTx = res.data.transaction;
+
+      // --- Update localStorage ---
+      const localData = JSON.parse(localStorage.getItem("transactions")) || [];
+      const updated = [...localData, savedTx];
+      localStorage.setItem("transactions", JSON.stringify(updated));
+
+      setMsg("✅ Transaction added successfully!");
+      setTimeout(() => navigate("/transactions"), 1000);
     } catch (err) {
-      setMsg(err?.response?.data?.message || "❌ Save failed");
+      // --- Offline fallback ---
+      const localData = JSON.parse(localStorage.getItem("transactions")) || [];
+      const tempTx = { ...newTx, tempId: Date.now(), offline: true };
+      const updated = [...localData, tempTx];
+      localStorage.setItem("transactions", JSON.stringify(updated));
+
+      setMsg("📝 Saved offline. Will sync later.");
+      setTimeout(() => navigate("/transactions"), 1000);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-700 via-purple-600 to-pink-500 p-4 relative">
-      {/* Dashboard button in top-right corner */}
-      <div className="absolute top-4 right-4">
-        <NavDashboardButton />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-800 text-white p-6 relative">
+      <NavDashboardButton />
 
-      <div className="bg-white/10 backdrop-blur-md p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md text-white">
-        <h2 className="text-3xl font-bold mb-6 text-center">💰 Add Transaction</h2>
+      <div className="max-w-md mx-auto bg-white/10 p-8 rounded-xl shadow-lg">
+        <h2 className="text-3xl font-bold mb-6 text-center">
+          Add {type === "income" ? "Income" : "Expense"}
+        </h2>
 
-        {msg && (
-          <div className="mb-4 p-3 text-center bg-indigo-800 rounded-lg text-sm font-semibold">
-            {msg}
-          </div>
-        )}
+        {msg && <div className="mb-4 p-3 bg-indigo-700 rounded text-center">{msg}</div>}
 
-        <form onSubmit={submit} className="space-y-4">
-          <select
-            name="type"
-            value={form.type}
-            onChange={change}
-            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-pink-300"
-          >
-            <option value="expense" className="text-black">
-              Expense
-            </option>
-            <option value="income" className="text-black">
-              Income
-            </option>
-          </select>
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
+            type="number"
             name="amount"
             value={form.amount}
-            onChange={change}
-            type="number"
-            step="0.01"
-            placeholder="Enter amount"
-            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-pink-300"
+            onChange={handleChange}
+            placeholder="Amount"
             required
+            className="w-full p-3 rounded text-black"
           />
 
           <input
+            type="text"
             name="category"
             value={form.category}
-            onChange={change}
-            placeholder="Category (e.g., Food, Rent)"
-            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-pink-300"
+            onChange={handleChange}
+            placeholder="Category"
             required
+            className="w-full p-3 rounded text-black"
           />
 
           <input
-            name="date"
-            value={form.date}
-            onChange={change}
-            type="date"
-            className="w-full p-3 rounded-lg bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-pink-300"
-          />
-
-          <textarea
+            type="text"
             name="description"
             value={form.description}
-            onChange={change}
-            placeholder="Description (optional)"
-            className="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-pink-300"
+            onChange={handleChange}
+            placeholder="Description"
+            className="w-full p-3 rounded text-black"
+          />
+
+          <input
+            type="date"
+            name="date"
+            value={form.date}
+            onChange={handleChange}
+            className="w-full p-3 rounded text-black"
           />
 
           <button
             type="submit"
-            className="w-full py-3 mt-2 rounded-lg font-semibold bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 transition-all duration-300"
+            className="w-full p-3 rounded-lg bg-green-600 hover:bg-green-700 transition font-semibold"
           >
-            Save Transaction
+            Add {type === "income" ? "Income" : "Expense"}
           </button>
         </form>
       </div>
