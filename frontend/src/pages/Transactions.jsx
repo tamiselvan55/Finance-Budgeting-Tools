@@ -8,26 +8,25 @@ export default function Transactions() {
   const [msg, setMsg] = useState("");
   const navigate = useNavigate();
 
-  const fetchTransactions = async () => {
+  const fetch = async () => {
     try {
       const res = await API.get("/transactions");
       setTx(res.data.transactions || []);
     } catch (err) {
-      setMsg("❌ Failed to fetch transactions");
+      setMsg("Unable to fetch transactions");
     }
   };
 
   useEffect(() => {
-    fetchTransactions();
+    fetch();
   }, []);
 
   const remove = async (id) => {
     try {
       await API.delete(`/transactions/${id}`);
       setTx(tx.filter((t) => t._id !== id));
-      setMsg("✅ Transaction deleted");
     } catch (err) {
-      setMsg("❌ Delete failed");
+      setMsg("Delete failed");
     }
   };
 
@@ -45,26 +44,27 @@ export default function Transactions() {
           </div>
         )}
 
+        {/* Navigate to Add Transaction Page */}
         <div className="flex justify-center mb-6 gap-4">
           <button
             onClick={() => navigate("/add-transaction?type=income")}
-            className="bg-gradient-to-br from-purple-800 to-purple-400 text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold shadow"
+            className="bg-gradient-to-br from-purple-800 to-purple-400 text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold shadow rounded-lg"
           >
             Add Income
           </button>
           <button
             onClick={() => navigate("/add-transaction?type=expense")}
-            className="bg-gradient-to-br from-pink-800 to-purple-500 text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold shadow"
+            className="bg-gradient-to-br from-pink-800 to-purple-500 text-white px-6 py-3 rounded-lg hover:opacity-90 transition font-semibold shadow-lg"
           >
             Add Expense
           </button>
         </div>
 
+        {/* Transaction List */}
         <div className="space-y-3">
           {tx.length === 0 && (
             <p className="text-gray-300 text-center">No transactions yet.</p>
           )}
-
           {tx.map((t) => (
             <div
               key={t._id}
