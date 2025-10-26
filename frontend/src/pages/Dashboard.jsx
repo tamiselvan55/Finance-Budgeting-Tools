@@ -10,16 +10,20 @@ export default function Dashboard({ user, logout }) {
       
       {/* Top Right — User Info + Logout */}
       <div className="w-full flex justify-end items-center mb-6 gap-4">
-        <div className="text-white/80">
-          Welcome
-        </div>
-        <button
-          onClick={logout}
-          className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition"
-        >
-          Logout
-        </button>
-      </div>
+  <div className="text-white/80">
+    Welcome
+  </div>
+  <button
+    onClick={() => {
+      logout(); 
+      navigate("/");
+    }}
+    className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition"
+  >
+    Logout
+  </button>
+</div>
+
 
       {/* Page Header */}
       <header className="text-center mb-10">

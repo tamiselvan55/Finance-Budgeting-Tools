@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Signup = ({ login }) => {
   const [username, setUsername] = useState("");
@@ -8,46 +8,50 @@ const Signup = ({ login }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Get existing users from localStorage or start empty
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-
-    // Check if username already exists
-    if (users.find((u) => u.username === username)) {
-      alert("Username already taken");
-      return;
+    if (username && password) {
+      login(username); // After signup, treat as logged in
+      navigate("/dashboard"); // navigate to dashboard
+    } else {
+      alert("Please enter username and password");
     }
-
-    // Add new user
-    users.push({ username, password });
-    localStorage.setItem("users", JSON.stringify(users));
-
-    // Log in immediately
-    login(username);
-    navigate("/dashboard");
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h2>Signup</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-800 p-6 text-white">
+      <h2 className="text-3xl font-bold mb-6">Sign Up</h2>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl w-full max-w-sm space-y-4 shadow-2xl border border-white/10"
+      >
         <input
+          type="text"
           placeholder="Username"
+          className="w-full p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
         />
-        <br /><br />
         <input
           type="password"
           placeholder="Password"
+          className="w-full p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <br /><br />
-        <button type="submit">Signup</button>
+        <button
+          type="submit"
+          className="w-full bg-purple-600 hover:bg-purple-500 py-3 rounded-lg font-medium transition duration-200"
+        >
+          Sign Up
+        </button>
       </form>
+      <p className="mt-4 text-purple-200 text-sm">
+        Already have an account?{" "}
+        <Link to="/login" className="text-indigo-400 underline hover:text-indigo-300">
+          Login
+        </Link>
+      </p>
     </div>
   );
 };
